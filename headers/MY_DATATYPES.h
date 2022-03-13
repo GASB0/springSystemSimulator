@@ -79,10 +79,16 @@ public:
   float norm() {
     float norm = std::sqrt(std::pow(x, 2) + std::pow(y, 2) + std::pow(z, 2));
     return norm;
-  }
+  };
 
   vec3 direction() { return {x / norm(), y / norm(), z / norm()}; }
+  friend std::ostream &operator<<(std::ostream &out, const vec3 &aTriplet);
 };
+
+inline std::ostream &operator<<(std::ostream &out, const vec3 &aTriplet) {
+  out << "(" << aTriplet.x << "," << aTriplet.y << "," << aTriplet.z << ')';
+  return out;
+}
 
 // Recuerda de tus clases de física que con sólo la posición y
 // la velocidad puedes determinar el estado de una partícula.
@@ -132,10 +138,11 @@ public:
   void setRelativeNeighbours(
       // vez que los llamas.
       std::vector<std::tuple<int, int>> &RelativeNeighboursList,
-      std::vector<std::vector<particle>> &aParticleSystem) {
+      std::vector<std::vector<particle>> &aParticleSystem,
+      std::vector<int> &aList) {
 
     int p, q;
-
+    int colNum = aParticleSystem.at(0).size();
     for (int i = 0; i < (int)RelativeNeighboursList.size(); i++) {
       p = std::get<0>(RelativeNeighboursList.at(i));
       q = std::get<1>(RelativeNeighboursList.at(i));
@@ -144,11 +151,22 @@ public:
         // neighbours.push_back(aParticleSystem.at(matPos.i + p).at(matPos.j +
         // q));
         neighbours.push_back(aParticleSystem.at(matPos.i + p).at(matPos.j + q));
+
       } catch (const std::out_of_range &e) {
       }
     }
 
     neighbours.shrink_to_fit();
+
+    for (int i = 0; i < (int)neighbours.size(); i++) {
+      p = neighbours.at(i).matPos.i;
+      q = neighbours.at(i).matPos.j;
+
+      aList.push_back(matPos.j + (colNum * matPos.i));
+      aList.push_back(colNum * (matPos.i + p) + (matPos.j + q));
+      // aList.push_back(colNum * (matPos.i + p) + (matPos.j + q));
+      // aList.push_back(matPos.j + (colNum * matPos.i));
+    }
   }
 
   particle(std::tuple<float, float, float> position,
