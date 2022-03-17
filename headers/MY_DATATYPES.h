@@ -52,6 +52,8 @@ public:
     return {x - aTriple.x, y - aTriple.y, z - aTriple.z};
   };
 
+  vec3 operator-() { return {-x, -y, -z}; };
+
   template <typename T> T operator-=(const T &aTriple) {
     return {x -= aTriple.x, y -= aTriple.y, z -= aTriple.z};
   };
@@ -65,6 +67,9 @@ public:
   };
 
   vec3 operator*=(const float &aScalar) {
+    this->x *= aScalar;
+    this->y *= aScalar;
+    this->z *= aScalar;
     return {x *= aScalar, y *= aScalar, z *= aScalar};
   };
 
@@ -73,6 +78,9 @@ public:
   };
 
   vec3 operator/=(const float &aScalar) {
+    this->x /= aScalar;
+    this->y /= aScalar;
+    this->z /= aScalar;
     return {x /= aScalar, y /= aScalar, z /= aScalar};
   };
 
@@ -130,43 +138,30 @@ public:
 
   float mass;
   // Partículas aledañas a nuestra partícula
-  std::vector<particle> neighbours;
+  std::vector<particle *> neighbours;
 
   // Esta función recibe como argumento un vector de
   // tuplas con las "posiciones relativas" correspondientes
   // a los vecinos que se espera que tenga la partícula
   void setRelativeNeighbours(
-      // vez que los llamas.
+      uint colNum, uint rowNum,
       std::vector<std::tuple<int, int>> &RelativeNeighboursList,
-      std::vector<std::vector<particle>> &aParticleSystem,
-      std::vector<int> &aList) {
+      std::vector<particle> &aParticleSystem) {
 
     int p, q;
-    int colNum = aParticleSystem.at(0).size();
     for (int i = 0; i < (int)RelativeNeighboursList.size(); i++) {
       p = std::get<0>(RelativeNeighboursList.at(i));
       q = std::get<1>(RelativeNeighboursList.at(i));
-      try {
-        // TODO: Cambiar esto por punteros/referencias.
-        // neighbours.push_back(aParticleSystem.at(matPos.i + p).at(matPos.j +
-        // q));
-        neighbours.push_back(aParticleSystem.at(matPos.i + p).at(matPos.j + q));
 
-      } catch (const std::out_of_range &e) {
+      if (matPos.i + p < 0 || matPos.j + q < 0 || matPos.i + p >= (int)rowNum ||
+          matPos.j + q >= (int)colNum) {
+      } else {
+        neighbours.push_back(
+            &aParticleSystem.at(colNum * (matPos.i + p) + (matPos.j + q)));
       }
     }
 
     neighbours.shrink_to_fit();
-
-    for (int i = 0; i < (int)neighbours.size(); i++) {
-      p = neighbours.at(i).matPos.i;
-      q = neighbours.at(i).matPos.j;
-
-      aList.push_back(matPos.j + (colNum * matPos.i));
-      aList.push_back(colNum * (matPos.i + p) + (matPos.j + q));
-      // aList.push_back(colNum * (matPos.i + p) + (matPos.j + q));
-      // aList.push_back(matPos.j + (colNum * matPos.i));
-    }
   }
 
   particle(std::tuple<float, float, float> position,
